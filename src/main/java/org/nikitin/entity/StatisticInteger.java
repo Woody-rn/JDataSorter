@@ -2,27 +2,29 @@ package org.nikitin.entity;
 
 import org.nikitin.config.Constants;
 
+import java.math.BigInteger;
+
 public class StatisticInteger extends StatisticBase {
     private int countInt;
-    private long minInt;
-    private long maxInt;
-    private long sumInt;
+    private BigInteger minBigInt;
+    private BigInteger maxBigInt;
+    private BigInteger sumBigInt = BigInteger.ZERO;
     private boolean hasValues;
 
     @Override
     public void updateStatistic(String value) {
         countInt++;
-        int parsedInt = Integer.parseInt(value);
+        BigInteger parsedInt = new BigInteger(value);
 
         if (!hasValues) {
-            minInt = parsedInt;
-            maxInt = parsedInt;
+            minBigInt = parsedInt;
+            maxBigInt = parsedInt;
             hasValues = true;
         } else {
-            minInt = Math.min(minInt, parsedInt);
-            maxInt = Math.max(maxInt, parsedInt);
+            minBigInt = minBigInt.min(parsedInt);
+            maxBigInt = maxBigInt.max(parsedInt);
         }
-        sumInt += parsedInt;
+        sumBigInt = sumBigInt.add(parsedInt);
     }
 
     @Override
@@ -39,15 +41,16 @@ public class StatisticInteger extends StatisticBase {
     @Override
     public StringBuilder buildFullStat(StringBuilder stringBuilder) {
         return buildShortStat(stringBuilder)
-                .append(Constants.MIN_VALUE).append(minInt)
-                .append(Constants.MAX_VALUE).append(maxInt)
-                .append(Constants.SUM_VALUE).append(sumInt)
+                .append(Constants.MIN_VALUE).append(minBigInt)
+                .append(Constants.MAX_VALUE).append(maxBigInt)
+                .append(Constants.SUM_VALUE).append(sumBigInt)
                 .append(Constants.AVG_VALUE).append(avgInt());
     }
 
-    private long avgInt() {
-        return (countInt == 0)
-                ? 0
-                : sumInt / countInt;
+    private BigInteger avgInt() {
+        if (countInt == 0) {
+            return BigInteger.ZERO;
+        }
+        return sumBigInt.divide(BigInteger.valueOf(countInt));
     }
 }

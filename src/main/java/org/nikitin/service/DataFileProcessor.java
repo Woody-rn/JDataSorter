@@ -43,7 +43,7 @@ public class DataFileProcessor {
                 statHandler.addValue(line);
             }
         } catch (Exception e) {
-            throw new AppException(Constants.ERROR_READING_FILE + e.getMessage());
+            throw new AppException(Constants.ERROR_READING_FILE + e.getMessage(), e);
         }
     }
 }

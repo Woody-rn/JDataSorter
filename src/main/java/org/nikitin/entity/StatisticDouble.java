@@ -2,27 +2,30 @@ package org.nikitin.entity;
 
 import org.nikitin.config.Constants;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 public class StatisticDouble extends StatisticBase {
     private int countDouble;
-    private double minDouble;
-    private double maxDouble;
-    private double sumDouble;
+    private BigDecimal minBigDecimal;
+    private BigDecimal maxBigDecimal;
+    private BigDecimal sumBigDecimal = BigDecimal.ZERO;
     private boolean hasValues;
 
     @Override
     public void updateStatistic(String value) {
         countDouble++;
-        double parsedDouble = Double.parseDouble(value);
+        BigDecimal parsedDouble = new BigDecimal(value);
 
         if (!hasValues) {
-            minDouble = parsedDouble;
-            maxDouble = parsedDouble;
+            minBigDecimal = parsedDouble;
+            maxBigDecimal = parsedDouble;
             hasValues = true;
         } else {
-            minDouble = Math.min(minDouble, parsedDouble);
-            maxDouble = Math.max(maxDouble, parsedDouble);
+            minBigDecimal = minBigDecimal.min(parsedDouble);
+            maxBigDecimal = maxBigDecimal.max(parsedDouble);
         }
-        sumDouble += parsedDouble;
+        sumBigDecimal = sumBigDecimal.add(parsedDouble);
     }
 
     @Override
@@ -39,13 +42,19 @@ public class StatisticDouble extends StatisticBase {
     @Override
     public StringBuilder buildFullStat(StringBuilder stringBuilder) {
         return buildShortStat(stringBuilder)
-                .append(Constants.MIN_VALUE).append(minDouble)
-                .append(Constants.MAX_VALUE).append(maxDouble)
-                .append(Constants.SUM_VALUE).append(sumDouble)
+                .append(Constants.MIN_VALUE).append(minBigDecimal)
+                .append(Constants.MAX_VALUE).append(maxBigDecimal)
+                .append(Constants.SUM_VALUE).append(sumBigDecimal)
                 .append(Constants.AVG_VALUE).append(avgDouble());
     }
 
-    private double avgDouble() {
-        return sumDouble / countDouble;
+    private BigDecimal avgDouble() {
+        if (countDouble == 0) {
+            return BigDecimal.ZERO;
+        }
+        return sumBigDecimal.divide(
+                BigDecimal.valueOf(countDouble),
+                MathContext.DECIMAL64
+        );
     }
 }
